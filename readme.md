@@ -12,7 +12,7 @@ does not store user-related data on local disk or memory. Shared state must be s
 * **DNS load balancing**
 
   * Example: `nslookup google.com` returns many IPs.
-  * Cons: DNS TTL, exposing server IPs, a server breaks
+  * Cons: DNS TTL, exposing server IPs, less balancing strategty
 
 * **Software**
 
