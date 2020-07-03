@@ -2,41 +2,80 @@
 
 Scaling system methods from my understanding.
 
-## Stateless
+## Stateless API
 
-In order for a service to be be horizontal scaling, each clone of the server
-does not store user-related data on local disk or memory. Shared state must be saved in a database or external cache.
+In order for a service to be be horizontal scaling, each clone of
+the server does not store user-related data on local disk or memory.
+Shared state must be saved in a database or external cache.
 
 ## Load balancing
 
-* **DNS load balancing**
+Load balancing distributes traffic to many different servers.
 
-  * Example: `nslookup google.com` returns many IPs.
-  * Cons: DNS TTL, exposing server IPs, less balancing strategty
-
-* **Software**
+* Software
 
   * Example: Nginx, HAProxy, Linux Virtual Server, ..
-  * TODO:
-    * try on Websocket, MySQL
-    * try types: least loaded, Layer 4 (tcp address)
-    * multiple load balancers for availability
+  * Pros: can define balancing rule:round-robin, tcp address, least
+    loaded, server down
+  * TODO: try Nginx on TCP (Websocket, MySQL), try customize, try dual
+    balancers for high availability.
+
+* DNS load balancing
+
+  * Example: `nslookup google.com` returns many IPs.
+  * Pros: do not need machine or balancer software
+  * Cons: DNS TTL, exposing server IPs, cannot customize
 
 ## Caching
 
-* Should cache data that does not need to frequently change and that
-  is costly to read or generate. Ex: historical data.
-* Memory is more limited than disk, so we need to configure
-  a cache invalidation job.
+Database server often is system bottleneck. Caching reduces number
+of reads on database. Second aspect is cache help users accessing
+content very fast.
 
-## Database replication
+* Should cache data that does not change frequently and that
+  is costly to read or generate (historical records in database).
+* Memory is more limited than disk, so we let caches last for
+  a short time.
+* Content Delivery Network is a geographically distributed group of
+  servers optimized to deliver static content to users.
+  (TODO: try to setup a CDN)
 
-Place holder
+## Database
 
-## Database sharding
+### Optimizing queries
+
+When database is slow, the easiest fix is optimizing queries.
+Index helps to speed up read queries.
+
+### Database replication
+
+* Pros: high availability, scale read queries.
+* Cons: complicated setup, reducing data consistency.
+
+### Database sharding
 
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
   * Joining data from multiple shards is complex. Denormalization
-  or duplication can help.
+    or duplication can help.
+
+## Microservices
+
+Microservices architecture is splitting up an application to many
+services that are independent of each others to stay running, each
+versices handle a business feature.
+
+* Pros:
+  * Each service can have its own tech stack and dev team.
+  * Update and deploy a service whenever you need without having
+    to stop others.
+  * If service makes a fault, it only affects itself and its
+    consumers.
+  * Easier to scale a service if needed.
+  
+* Cons:
+  * Distributed communication: services have to define an
+    interprocesses data format, then send them over network by
+    a message queue or HTTP instead of just passing a variable.
+    So performance is reduced and logic handling is more complicated.
