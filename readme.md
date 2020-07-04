@@ -2,7 +2,7 @@
 
 Scaling system methods from my understanding.
 
-## Stateless API
+## Share state
 
 In order for a service to be be horizontal scaling, each clone of
 the server does not store user-related data on local disk or memory.
@@ -54,6 +54,7 @@ Index helps to speed up read queries.
 
 ### Database sharding
 
+* Pros: Scaling write (the only way?)
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
@@ -64,13 +65,13 @@ Index helps to speed up read queries.
 
 Microservices architecture is splitting up an application to many
 services that are independent of each others to stay running, each
-services handle a business feature.
+service handles a business feature.
 
 * Pros:
   * Each service can have its own tech stack and dev team.
   * Update and deploy a service whenever you need without having
     to stop others.
-  * If service makes a fault, it only affects itself and its
+  * If a service makes a fault, it only affects itself and its
     consumers.
   * Easier to scale a service if needed.
   
@@ -80,7 +81,7 @@ services handle a business feature.
     a message queue or HTTP instead of just passing a variable.
     So performance is reduced and logic handling is more complicated.
 
-### Message queue vs HTTP (sync vs async interservices communication)
+### Message bus vs HTTP (async vs sync interservices communication)
 
 * Pros:
   * persistance: if the server fails, the queue persist the message,
@@ -90,3 +91,4 @@ services handle a business feature.
     to insert or update a database.
 * Cons:
   * Message queue can be a bottleneck.
+  * Dead message.
