@@ -64,7 +64,7 @@ Index helps to speed up read queries.
 
 Microservices architecture is splitting up an application to many
 services that are independent of each others to stay running, each
-versices handle a business feature.
+services handle a business feature.
 
 * Pros:
   * Each service can have its own tech stack and dev team.
@@ -79,3 +79,14 @@ versices handle a business feature.
     interprocesses data format, then send them over network by
     a message queue or HTTP instead of just passing a variable.
     So performance is reduced and logic handling is more complicated.
+
+### Message queue vs HTTP (sync vs async interservices communication)
+
+* Pros:
+  * persistance: if the server fails, the queue persist the message,
+    so when the server is working again, it can handle the pending message.
+  * rate limiting: servers have choices to consume request or not.
+  * batching: handle many requests at a same time, so more efficient
+    to insert or update a database.
+* Cons:
+  * Message queue can be a bottleneck.
