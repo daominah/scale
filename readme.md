@@ -54,6 +54,7 @@ Index helps to speed up read queries.
 
 ### Database sharding
 
+* Scaling write (the only way?)
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
@@ -64,13 +65,13 @@ Index helps to speed up read queries.
 
 Microservices architecture is splitting up an application to many
 services that are independent of each others to stay running, each
-versices handle a business feature.
+sevice handles a business feature.
 
 * Pros:
   * Each service can have its own tech stack and dev team.
   * Update and deploy a service whenever you need without having
     to stop others.
-  * If service makes a fault, it only affects itself and its
+  * If a service makes a fault, it only affects itself and its
     consumers.
   * Easier to scale a service if needed.
   
