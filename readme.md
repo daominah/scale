@@ -2,7 +2,7 @@
 
 Scaling system methods from my understanding.
 
-## Share state
+## Shared state
 
 In order for a service to be be horizontal scaling, each clone of
 the server does not store user-related data on local disk or memory.
@@ -78,17 +78,51 @@ service handles a business feature.
 * Cons:
   * Distributed communication: services have to define an
     interprocesses data format, then send them over network by
-    a message queue or HTTP instead of just passing a variable.
+    a message bus or HTTP instead of just passing a variable.
     So performance is reduced and logic handling is more complicated.
 
-### Message bus vs HTTP (async vs sync interservices communication)
+### Fault tolerant in microservices
+
+#### Cascade failure
+
+Cascade failure is a where the failure of a service results in the failure
+of others.
+
+Example: WebUI calls Offer service, then Offer service spawns a thread to
+send HTTP to PurchaseHistory service and wait for response.
+If PurchaseHistory service is slow, users cannot see the result on WebUI, they hit F5 to retry, so Offer service spawn more threads that very
+slowly return, then Offer service is slow too.
+
+In the example, we can prevent cascade failure by setting a timeout,
+sending requests to a message bus.
+
+#### Timeout
+
+Timeout is useful as a defender of cascade failure. And a service
+can choose what to do when it encounters a timeout. It can return an error,
+return a default value, or retry (only for idempotent API).
+
+Too long timeout causes bad user experience. Timeout of user call is the
+sum of all interservice calls, can be quite long.
+So for each service, having a shorter timeout is better.
+
+But a too short timeout can increase number of error responses
+from a resource which could still be working normally. And if the caller
+choose to retry on timeout, an overloaded service get even more workloads.
+
+TODO: how to get a good timeout.
+
+#### Circuit breaker
+
+TODO
+
+### Message bus
 
 * Pros:
   * persistance: if the server fails, the queue persist the message,
     so when the server is working again, it can handle the pending message.
-  * rate limiting: servers have choices to consume request or not.
+  * rate limiting: server can decide to consume request or not.
   * batching: handle many requests at a same time, so more efficient
     to insert or update a database.
 * Cons:
-  * Message queue can be a bottleneck.
-  * Dead message.
+  * Message bus system can be a bottleneck.
