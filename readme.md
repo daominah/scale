@@ -2,7 +2,7 @@
 
 Scaling system methods from my understanding.
 
-## Stateless API
+## Share state
 
 In order for a service to be be horizontal scaling, each clone of
 the server does not store user-related data on local disk or memory.
