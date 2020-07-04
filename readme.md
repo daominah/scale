@@ -80,6 +80,7 @@ service handles a business feature.
     interprocesses data format, then send them over network by
     a message bus or HTTP instead of just passing a variable.
     So performance is reduced and logic handling is more complicated.
+  * Distributed transaction: hard. (TODO: read about Saga and 2PC)
 
 ### Fault tolerant in microservices
 
