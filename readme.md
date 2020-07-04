@@ -54,7 +54,7 @@ Index helps to speed up read queries.
 
 ### Database sharding
 
-* Scaling write (the only way?)
+* Pros: Scaling write (the only way?)
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
