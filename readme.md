@@ -132,14 +132,18 @@ Pros:
 
 TODO: try Hystrix
 
-### Message bus
+### Message queue
 
 * Pros:
+  * decoupling services
   * persistence: if the server fails, the queue persist the message,
     so when the server is working again, it can handle the pending message.
   * rate limiting: server can decide to consume request or not.
-  * batching: handle many requests at a same time, so more efficient
-    to insert or update a database.
+  * batching: handle many requests at a same time, more efficient
+    inserting to a database.
 * Cons:
-  * Message bus is a distributed system and has its own problems.
-* Example: Kafka. TODO: try memory bus (Redis PubSub, ..)
+  * Can be system bottleneck (every service sends message queue system).
+  * Message queue is a distributed system and has its own problems.
+* Example: Kafka, ZeroMQ, RabbitMQ, Redis PubSub, .. 
+
+TODO: try in-memory message queue
