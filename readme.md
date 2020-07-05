@@ -15,16 +15,16 @@ Load balancing distributes traffic to many different servers.
 * Software
 
   * Example: Nginx, HAProxy, Linux Virtual Server, ..
-  * Pros: can define balancing rule:round-robin, tcp address, least
-    loaded, server down
+  * Pros: can define balancing rule: round-robin, TCP address, least
+    loaded, server down.
   * TODO: try Nginx on TCP (Websocket, MySQL), try customize, try dual
     balancers for high availability.
 
 * DNS load balancing
 
   * Example: `nslookup google.com` returns many IPs.
-  * Pros: do not need machine or balancer software
-  * Cons: DNS TTL, exposing server IPs, cannot customize
+  * Pros: do not need machine or balancer software.
+  * Cons: DNS TTL, exposing server IPs, cannot customize.
 
 ## Caching
 
@@ -45,7 +45,7 @@ content very fast.
 ### Optimizing queries
 
 When database is slow, the easiest fix is optimizing queries.
-Index helps to speed up read queries.
+Understanding index helps to speed up read queries.
 
 ### Database replication
 
@@ -71,16 +71,20 @@ service handles a business feature.
   * Each service can have its own tech stack and dev team.
   * Update and deploy a service whenever you need without having
     to stop others.
-  * If a service makes a fault, it only affects itself and its
-    consumers.
+  * If a service makes a fault, it only affects itself and its consumers.
   * Easier to scale a service if needed.
   
 * Cons:
-  * Distributed communication: services have to define an
-    interprocesses data format, then send them over network by
-    a message bus or HTTP instead of just passing a variable.
-    So performance is reduced and logic handling is more complicated.
-  * Distributed transaction: hard. (TODO: read about Saga and 2PC)
+  * Network communication: services have to define an interprocess 
+    data format, then send them over network by a message bus or HTTP 
+    instead of just passing a variable.
+  * Distributed transaction: hard, instead of doing a transaction on one
+    database, we need a pattern to do a distributed transaction among 
+    multiple databases. 
+    * Saga is a popular pattern. Basically, it is a sequence of local 
+      transactions, if any service fails to complete its local transaction,
+      the others will need to do a compensation action.
+    * If you are a service provider, you have to implement an undo API.
 
 ### Fault tolerant in microservices
 
@@ -89,19 +93,21 @@ service handles a business feature.
 Cascade failure is a where the failure of a service results in the failure
 of others.
 
-Example: WebUI calls Offer service, then Offer service spawns a thread to
-send HTTP to PurchaseHistory service and wait for response.
-If PurchaseHistory service is slow, users cannot see the result on WebUI, they hit F5 to retry, so Offer service spawn more threads that very
-slowly return, then Offer service is slow too.
+Example: WebUI calls SpecialOffer service, then SpecialOffer service spawns
+a thread to send HTTP to PurchaseHistory service and wait for response.
+If PurchaseHistory service is overloaded, users cannot see the result on WebUI,
+they hit F5 to retry, so SpecialOffer service will spawn more threads that
+waiting forever, then SpecialOffer service is slow too.
 
-In the example, we can prevent cascade failure by setting a timeout,
-sending requests to a message bus.
+In the example, we can prevent SpecialOffer service cascade failure by setting 
+a timeout, or sending requests to a message bus. But a bad timeout have 
+serious consequence.
 
 #### Timeout
 
 Timeout is useful as a defender of cascade failure. And a service
 can choose what to do when it encounters a timeout. It can return an error,
-return a default value, or retry (only for idempotent API).
+return a default value, or retry (on idempotent API).
 
 Too long timeout causes bad user experience. Timeout of user call is the
 sum of all interservice calls, can be quite long.
@@ -111,19 +117,29 @@ But a too short timeout can increase number of error responses
 from a resource which could still be working normally. And if the caller
 choose to retry on timeout, an overloaded service get even more workloads.
 
-TODO: how to get a good timeout.
+TODO: How to get a good timeout. Is setting timeout slightly higher than 
+the measured 99.5th percentile latency better than a default value.
 
 #### Circuit breaker
 
-TODO
+A circuit breaker monitors calls to external resources with the aim 
+of preventing calls which are likely to fail.
+
+Pros: 
+  * Do not wait for unresponsive calls, has more time to fall back 
+    to other behaviour.
+  * Help the external resource to have less requests.
+
+TODO: try Hystrix
 
 ### Message bus
 
 * Pros:
-  * persistance: if the server fails, the queue persist the message,
+  * persistence: if the server fails, the queue persist the message,
     so when the server is working again, it can handle the pending message.
   * rate limiting: server can decide to consume request or not.
   * batching: handle many requests at a same time, so more efficient
     to insert or update a database.
 * Cons:
-  * Message bus system can be a bottleneck.
+  * Message bus is a distributed system and has its own problems.
+* Example: Kafka. TODO: try memory bus (Redis PubSub, ..)
