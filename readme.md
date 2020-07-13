@@ -75,75 +75,76 @@ service handles a business feature.
   * Easier to scale a service if needed.
   
 * Cons:
-  * Network communication: services have to define an interprocess 
-    data format, then send them over network by a message bus or HTTP 
+  * Network communication: services have to define an interprocess
+    data format, then send them over network by a message bus or HTTP
     instead of just passing a variable.
   * Distributed transaction: hard, instead of doing a transaction on one
-    database, we need a pattern to do a distributed transaction among 
-    multiple databases. 
-    * Saga is a popular pattern. Basically, it is a sequence of local 
-      transactions, if any service fails to complete its local transaction,
-      the others will need to do a compensation action.
+    database, we need a pattern to do a distributed transaction among
+    multiple databases.
+    * Saga is a popular pattern. Basically, it is a sequence of local
+      transactions, if any service fails to complete its local
+      transaction, the others will need to do a compensation action.
     * If you are a service provider, you have to implement an undo API.
 
 ### Fault tolerant in microservices
 
 #### Cascade failure
 
-Cascade failure is a where the failure of a service results in the failure
-of others.
+Cascade failure is a where the failure of a service results in the
+failure of others.
 
-Example: WebUI calls SpecialOffer service, then SpecialOffer service spawns
-a thread to send HTTP to PurchaseHistory service and wait for response.
-If PurchaseHistory service is overloaded, users cannot see the result on WebUI,
-they hit F5 to retry, so SpecialOffer service will spawn more threads that
-waiting forever, then SpecialOffer service is slow too.
+Example: WebUI calls SpecialOffer service, then SpecialOffer service
+spawns a thread to send HTTP to PurchaseHistory service and wait
+for response.
+If PurchaseHistory service is overloaded, users cannot see the result
+on WebUI, they hit F5 to retry, so SpecialOffer service will spawn more
+threads that waiting forever, then SpecialOffer service is slow too.
 
-In the example, we can prevent SpecialOffer service cascade failure by setting 
-a timeout, or sending requests to a message bus. But a bad timeout have 
-serious consequence.
+In the example, we can prevent SpecialOffer service cascade failure
+by setting a timeout, or sending requests to a message bus.
+Be careful to choose a good timeout.
 
 #### Timeout
 
 Timeout is useful as a defender of cascade failure. And a service
-can choose what to do when it encounters a timeout. It can return an error,
-return a default value, or retry (on idempotent API).
+can choose what to do when it encounters a timeout. It can return
+an error, return a default value, or retry (on idempotent API).
 
 Too long timeout causes bad user experience. Timeout of user call is the
-sum of all interservice calls, can be quite long.
-So for each service, having a shorter timeout is better.
+sum of all interservice calls, can be quite long. So for each service,
+having a shorter timeout is better.
 
-But a too short timeout can increase number of error responses
-from a resource which could still be working normally. And if the caller
-choose to retry on timeout, an overloaded service get even more workloads.
+But a too short timeout can increase number of error responses from a
+resource which could still be working normally. And if the caller choose
+to retry on timeout, an overloaded service get even more workloads.
 
-TODO: How to get a good timeout. Is setting timeout slightly higher than 
-the measured 99.5th percentile latency better than a default value.
+TODO: Why does [Hystrix](https://github.com/Netflix/Hystrix/wiki)
+suggest setting a timeout slightly higher than the measured 99.5th
+percentile latency.
 
 #### Circuit breaker
 
-A circuit breaker monitors calls to external resources with the aim 
+A circuit breaker monitors calls to external resources with the aim
 of preventing calls which are likely to fail.
 
-Pros: 
-  * Do not wait for unresponsive calls, has more time to fall back 
-    to other behaviour.
+* Pros:
+  * Do not wait for unresponsive calls, has more time to fall back
+      to other behaviour.
   * Help the external resource to have less requests.
-
-TODO: try Hystrix
 
 ### Message queue
 
 * Pros:
-  * decoupling services
-  * persistence: if the server fails, the queue persist the message,
-    so when the server is working again, it can handle the pending message.
-  * rate limiting: server can decide to consume request or not.
-  * batching: handle many requests at a same time, more efficient
-    inserting to a database.
+  * Resilience: producer can add requests to the queue without waiting
+    for consumer.
+  * Throttling: server can decide to consume requests when they
+    are ready.
+  * Persistence: the queue persists requests so it reduces errors that
+    happen when consumer go offline. When the consumer is working again,
+    it can handle the pending messages.
 * Cons:
   * Can be system bottleneck (every service sends message queue system).
   * Message queue is a distributed system and has its own problems.
-* Example: Kafka, ZeroMQ, RabbitMQ, Redis PubSub, .. 
+* Example: Kafka, ZeroMQ, RabbitMQ, RedisPubSub, ..
 
-TODO: try in-memory message queue
+TODO: try an in-memory message queue
