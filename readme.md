@@ -58,8 +58,7 @@ Understanding index helps to speed up read queries.
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
-  * Joining data from multiple shards is complex. Denormalization
-    or duplication can help.
+  * Need to know how to model data for sharding.
 
 ## Microservices
 
@@ -72,21 +71,24 @@ service handles a business feature.
   * Update and deploy a service whenever you need without having
     to stop others.
   * If a service makes a fault, it only affects itself and its consumers.
-  * Easier to scale a service if needed.
-  
+  * Easier to scale the most needed features instead of the whole
+    application.
+
 * Cons:
-  * Network communication: services have to define an interprocess
+  * Network communication: services have to define an interproces
     data format, then send them over network by a message bus or HTTP
-    instead of just passing a variable.
-  * Distributed transaction: hard, instead of doing a transaction on one
-    database, we need a pattern to do a distributed transaction among
-    multiple databases.
+    instead of just passing a variable. Network is not reliable, has 
+    a latency and a limited bandwidth, ..
+  * Joins data is hard because data were split into different databases.
+  * Distributed transaction is harder, instead of doing a transaction on
+    one database, we need a pattern to do a distributed transaction 
+    among multiple databases.
     * Saga is a popular pattern. Basically, it is a sequence of local
       transactions, if any service fails to complete its local
       transaction, the others will need to do a compensation action.
     * If you are a service provider, you have to implement an undo API.
 
-### Fault tolerant in microservices
+### Fault tolerant
 
 #### Cascade failure
 
@@ -148,3 +150,36 @@ of preventing calls which are likely to fail.
 * Example: Kafka, ZeroMQ, RabbitMQ, RedisPubSub, ..
 
 TODO: try an in-memory message queue
+
+### Data modeling
+
+#### Pros of some DBMSes
+
+* MySQL (Relational DBMS)
+  * Natural relational modeling: start from real life objects, represent
+    them as tables, normalize and assign primary keys and foreign keys
+    to remove duplication and keep related data consistent. After tables
+    modeled properly, you can always get the data you want (with Join
+    operator or complex sub queries).
+  * Reliable (ACID model, suitable for financial app).
+  * Mature, the most popular free database.
+* MongoDB
+  * Schema-less: data is JSON-like documents that are similar to 
+    programming languages objects (very easy to start).
+  * Support powerful queries (aggregate).
+  * The most popular NoSQL.
+* Cassandra
+  * Linear writing scalability (only member in the replica set that
+    receives write operations mongodb can only has one member in a
+    replica set that receives write operations).
+  * Built-in auto partition (aka sharding or stores data across a 
+    cluster of nodes).
+  * Zero downtime (because every node can read or write).
+
+#### Query-driven data modeling
+
+In contrast to relational databases that normalize data to avoid
+duplication, query-driven data modeling duplicates data in multiple 
+tables. If data model cannot fully integrate the complexity of
+relationships between tables for a particular query, client-side joins 
+in application code may be used.
