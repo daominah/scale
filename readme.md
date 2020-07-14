@@ -23,22 +23,10 @@ Load balancing distributes traffic to many different servers.
 * DNS load balancing
 
   * Example: `nslookup google.com` returns many IPs.
-  * Pros: do not need machine or balancer software.
-  * Cons: DNS TTL, exposing server IPs, cannot customize.
-
-## Caching
-
-Database server often is system bottleneck. Caching reduces number
-of reads on database. Second aspect is cache help users accessing
-content very fast.
-
-* Should cache data that does not change frequently and that
-  is costly to read or generate (historical records in database).
-* Memory is more limited than disk, so we let caches last for
-  a short time.
-* Content Delivery Network is a geographically distributed group of
-  servers optimized to deliver static content to users.
-  (TODO: try to setup a CDN)
+  * Pros:
+    * Do not need machine or balancer software.
+    * Can be used on top of software balancers for high availability.
+  * Cons: DNS TTL, exposing server IPs, cannot be customized.
 
 ## Database
 
@@ -54,11 +42,66 @@ Understanding index helps to speed up read queries.
 
 ### Database sharding
 
-* Pros: Scaling write (the only way?)
+* Pros: Scale write throughput (the only way?)
 * Cons:
   * Need to update your application logic to work with shards.
   * Data distribution can become unbalanced.
   * Need to know how to model data for sharding.
+
+### Data modeling
+
+#### Pros of some DBMSes
+
+* MySQL (Relational DBMS)
+  * Natural relational modeling: start from real life objects, represent
+    them as tables, normalize and assign primary keys and foreign keys
+    to remove duplication and keep related data consistent. After tables
+    modeled properly, you can always get the data you want (with Join
+    operator or complex sub queries).
+  * Reliable (ACID model, suitable for financial app).
+  * Mature, the most popular free database.
+* MongoDB
+  * Schema-less: data is JSON-like documents that are similar to
+    programming languages objects. No need to create or alter tables.
+  * Powerful queries (aggregate), easy to add index on any field.
+  * The most popular NoSQL.
+* Cassandra
+  * Writing performance is very strong, linear scalability (if data is
+    properly modeled).
+  * Built-in auto partitioning (aka sharding or splitting data across
+    many machines). Adding node without the need to reshard or reboot
+    ([detail](
+    https://cassandra.apache.org/doc/latest/architecture/dynamo.html)).
+  * Zero downtime, easy to setup multi-master replication (contrast to
+   single-master in MongoDB, take about 20s to fail-over).
+  * Flexible consistency (client can determine consistency level for
+  each write or read).
+
+#### Query-driven data modeling
+
+In contrast to relational databases that normalize data to avoid
+duplication, query-driven data modeling duplicates data in multiple
+tables to speed up read queries (read data from one table on in minimum
+the number of shards).
+
+If data model cannot fully integrate the complexity of
+relationships between tables for a particular query, client-side joins
+in application code may be used.
+
+## Caching
+
+Database server often is system bottleneck. Caching reduces number
+of reads on database. Second aspect is cache help users accessing
+content very fast.
+
+* Should cache data that does not change frequently and that
+  is costly to read or generate (historical records in database).
+* Memory is more limited than disk, so we let caches last for
+  a short time. Updating both origin data and cache cause application
+  to be more complicated.
+* Content Delivery Network is a geographically distributed group of
+  servers optimized to deliver static content to users.
+  (TODO: try to setup a CDN)
 
 ## Microservices
 
@@ -77,11 +120,11 @@ service handles a business feature.
 * Cons:
   * Network communication: services have to define an interproces
     data format, then send them over network by a message bus or HTTP
-    instead of just passing a variable. Network is not reliable, has 
+    instead of just passing a variable. Network is not reliable, has
     a latency and a limited bandwidth, ..
   * Joins data is hard because data were split into different databases.
   * Distributed transaction is harder, instead of doing a transaction on
-    one database, we need a pattern to do a distributed transaction 
+    one database, we need a pattern to do a distributed transaction
     among multiple databases.
     * Saga is a popular pattern. Basically, it is a sequence of local
       transactions, if any service fails to complete its local
@@ -150,36 +193,3 @@ of preventing calls which are likely to fail.
 * Example: Kafka, ZeroMQ, RabbitMQ, RedisPubSub, ..
 
 TODO: try an in-memory message queue
-
-### Data modeling
-
-#### Pros of some DBMSes
-
-* MySQL (Relational DBMS)
-  * Natural relational modeling: start from real life objects, represent
-    them as tables, normalize and assign primary keys and foreign keys
-    to remove duplication and keep related data consistent. After tables
-    modeled properly, you can always get the data you want (with Join
-    operator or complex sub queries).
-  * Reliable (ACID model, suitable for financial app).
-  * Mature, the most popular free database.
-* MongoDB
-  * Schema-less: data is JSON-like documents that are similar to 
-    programming languages objects (very easy to start).
-  * Support powerful queries (aggregate).
-  * The most popular NoSQL.
-* Cassandra
-  * Linear writing scalability (only member in the replica set that
-    receives write operations mongodb can only has one member in a
-    replica set that receives write operations).
-  * Built-in auto partition (aka sharding or stores data across a 
-    cluster of nodes).
-  * Zero downtime (because every node can read or write).
-
-#### Query-driven data modeling
-
-In contrast to relational databases that normalize data to avoid
-duplication, query-driven data modeling duplicates data in multiple 
-tables. If data model cannot fully integrate the complexity of
-relationships between tables for a particular query, client-side joins 
-in application code may be used.
