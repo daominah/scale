@@ -66,8 +66,9 @@ Understanding index helps to speed up read queries.
   * Powerful queries (aggregate), easy to add index on any field.
   * The most popular NoSQL.
 * Cassandra
-  * Writing performance is very strong, linear scalability (if data is
-    properly modeled).
+  * Writing performance is linear scalable (if data is properly 
+    modeled: [query-driven data modeling](
+    https://cassandra.apache.org/doc/latest/data_modeling/intro.html)).
   * Built-in auto partitioning (aka sharding or splitting data across
     many machines). Adding node without the need to reshard or reboot
     ([detail](
