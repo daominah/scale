@@ -181,12 +181,9 @@ of preventing calls which are likely to fail.
 
 * Pros:
   * Resilience: producer can add requests to the queue without waiting
-    for consumer.
+    for consumer, or when consumer went offline
   * Throttling: server can decide to consume requests when they
     are ready.
-  * Persistence: the queue persists requests so it reduces errors that
-    happen when consumer go offline. When the consumer is working again,
-    it can handle the pending messages.
 * Cons:
   * Can be system bottleneck (every service sends message queue system).
   * Message queue is a distributed system and has its own problems.
